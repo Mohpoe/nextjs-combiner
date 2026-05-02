@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { FolderDown, FileCode, CheckCircle, AlertCircle, Loader2, Download, Info } from 'lucide-react';
 
 const IGNORE_DIRS = new Set(['.git', 'node_modules', '.next', 'out', 'build', 'dist', 'coverage', '.turbo']);
@@ -15,8 +15,6 @@ export default function App() {
   const [resultText, setResultText] = useState('');
   const [isSupported, setIsSupported] = useState(true);
 
-  // tes deploy
-  
   React.useEffect(() => {
     // Cek dukungan File System Access API (Umumnya Chrome/Edge/Brave/Opera)
     if (!window.showDirectoryPicker) {
@@ -24,15 +22,15 @@ export default function App() {
     }
   }, []);
 
-  const isAllowedFile = (filename) => {
+  const isAllowedFile = (filename: string) => {
     if (IGNORE_FILES.has(filename)) return false;
     if (SECRETS_FILES.has(filename)) return false; // Abaikan file .env demi keamanan
     return ALLOWED_EXTS.some(ext => filename.endsWith(ext));
   };
 
   // Tahap 1: Pindai direktori untuk mendapatkan semua file yang valid
-  const scanDirectory = async (dirHandle, currentPath = '') => {
-    let files = [];
+  const scanDirectory = async (dirHandle: FileSystemDirectoryHandle, currentPath: string = ''): Promise<Array<{ handle: FileSystemFileHandle; path: string; name: string; }>> => {
+    let files: Array<{ handle: FileSystemFileHandle; path: string; name: string; }> = [];
     for await (const entry of dirHandle.values()) {
       if (entry.kind === 'directory') {
         if (!IGNORE_DIRS.has(entry.name)) {
@@ -53,7 +51,7 @@ export default function App() {
   };
 
   // Membuat representasi visual struktur folder (Tree)
-  const generateTreeString = (filePaths) => {
+  const generateTreeString = (filePaths: string[]): string => {
     let treeStr = "================================================================================\n";
     treeStr += "STRUKTUR DIREKTORI PROYEK (File yang relevan saja)\n";
     treeStr += "================================================================================\n\n";
@@ -119,13 +117,13 @@ export default function App() {
       setResultText(combinedContent);
       setStatus('done');
 
-    } catch (err) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         setStatus('idle'); // User membatalkan pemilihan folder
         return;
       }
       setStatus('error');
-      setErrorMsg(err.message || 'Terjadi kesalahan saat memproses folder.');
+      setErrorMsg(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses folder.');
       console.error(err);
     }
   };
