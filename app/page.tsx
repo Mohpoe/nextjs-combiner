@@ -15,6 +15,8 @@ export default function App() {
   const [resultText, setResultText] = useState('');
   const [isSupported, setIsSupported] = useState(true);
 
+  // tes deploy
+  
   React.useEffect(() => {
     // Cek dukungan File System Access API (Umumnya Chrome/Edge/Brave/Opera)
     if (!window.showDirectoryPicker) {
